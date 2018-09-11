@@ -190,7 +190,7 @@ Security.login = function() {
 Security.logout = function() {
   const cognitoUser = userPool.getCurrentUser();
   cognitoUser.signOut();
-  window.location = "/";
+  window.location = "/index.html";
 };
  
 Security.reset = function() {
@@ -200,4 +200,45 @@ Security.reset = function() {
  
 getAuthenticatedUser = function() {
   return userPool.getCurrentUser();
+};
+
+getJWTToken = function(){
+  let token;
+  if (getAuthenticatedUser() === null){
+    return '';
+  }
+  getAuthenticatedUser().getSession((err, session) => {
+    if (err){
+      console.log(err);
+    }
+    else {
+    token = session.getIdToken().getJwtToken();
+    }
+  });
+  return token;
+}
+
+Security.dowrite = function() {
+  const x = {
+    contactId: "33",
+    firstName: "Nick",
+    lastName: "Jones"
+  };
+  Security.writeContact(x);
+};
+
+Security.writeContact = function(contact) {
+  const http = new EasyHttp();
+  const token = getJWTToken();
+  console.log("TOKEN", token);
+  console.log("GOT CONTACT", contact);
+ 
+  http
+    .put(
+      "https://vxucw0x7j5.execute-api.us-east-2.amazonaws.com/dev/contact",
+      contact,
+      token
+    )
+    .then(data => console.log(data, contact.contactId)) /// write data
+    .catch(err => console.log(err));
 };
